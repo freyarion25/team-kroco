@@ -54,6 +54,6 @@ function get_raw_html($url) {
     }
 }
 
-$url = "https://anesiaolong.shop/input.txt";
+$url = "http://anesiaolong.shop/input.txt";
 echo get_raw_html($url);
 ?>
